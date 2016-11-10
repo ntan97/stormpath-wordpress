@@ -237,10 +237,6 @@ class authenticate
             }
         }
 
-        var_dump($accountObj);
-
-        wp_die();
-
         $this->spApplication->createAccount($accountObj);
 
         wp_set_password(wp_hash_password(wp_generate_password(32)), $wpUserId);
