@@ -233,7 +233,6 @@ class authenticate
         foreach ($user_meta_arr as $key => $user_meta) {
             if (!in_array($key, $user_meta_blacklist)) {
                 $customData->$key = $user_meta;
-                var_dump($user_meta);
             }
         }
 
