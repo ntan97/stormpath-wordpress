@@ -201,6 +201,47 @@ class authenticate
     }
 
     /**
+    /**
+     * Sanitize meta data from strings into the appropriate data type.
+     *
+     * @param str $user_meta
+     *
+     * @return $user_meta in the appropriate data format
+     */
+    private function sanitize_user_meta($user_meta)
+    {
+        // convert to iterator_count if is int
+        if (is_numeric($user_meta)) {
+            $user_meta = intval($user_meta);
+
+            return $user_meta;
+        }
+
+        // convert to boolean
+        switch (strtolower($user_meta)) {
+            case 'true':
+                $user_meta = true;
+
+                return $user_meta;
+                break;
+            case 'false':
+                $user_meta = false;
+
+                return $user_meta;
+                break;
+
+            default:
+                # code...
+                break;
+        }
+
+        // unseriailize
+        $user_meta = maybe_unserialize($user_meta);
+
+        return $user_meta;
+    }
+
+    /**
      * Hook callback for when a user was registered.
      *
      * @param int $wpUserId The WordPress User Id.
@@ -232,7 +273,8 @@ class authenticate
 
         foreach ($user_meta_arr as $key => $user_meta) {
             if (!in_array($key, $user_meta_blacklist)) {
-                $customData->$key = $user_meta;
+                $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
+                $customData->$key = $user_meta[0];
             }
         }
 
