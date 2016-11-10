@@ -201,6 +201,31 @@ class authenticate
     }
 
     /**
+     * Update User Meta on Stormpath.
+     *
+     * @param int    $meta_id     id of the meta in the database
+     * @param int    $object_id   id of the object the meta is applied to
+     * @param string $meta_key    key or nicename of the meta
+     * @param mixed  $_meta_value value of the meta
+     */
+    public function updated_user_meta($meta_id, $object_id, $meta_key, $_meta_value)
+    {
+        $user = new WP_User($object_id);
+
+        $accounts = $this->spApplication->accounts->setSearch(['q' => $user->user_email]);
+        if ($accounts->size > 0) {
+            $account = $accounts->getIterator()->current();
+
+            $customData = $account->customData;
+
+            // $sanitized_meta_value = sanitize_meta($_meta_value);
+
+            $customData->$meta_key = $_meta_value;
+
+            $customData->save();
+        }
+    }
+
     /**
      * Sanitize meta data from strings into the appropriate data type.
      *
