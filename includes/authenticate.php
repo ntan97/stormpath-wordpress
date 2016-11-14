@@ -317,7 +317,7 @@ class authenticate
 
         wp_new_user_notification($wpUserId, null, '', true);
 
-        wp_set_password(wp_hash_password($password), $wpUserId);
+        wp_set_password(wp_hash_password(wp_generate_password(32)), $wpUserId);
     }
 
     /**
