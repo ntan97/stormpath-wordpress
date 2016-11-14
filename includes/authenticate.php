@@ -304,10 +304,9 @@ class authenticate
 
         // setup to add existing meta data to customData
         $customData = $accountObj->customData;
-        $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname');
 
         foreach ($user_meta_arr as $key => $user_meta) {
-            if (!in_array($key, $user_meta_blacklist)) {
+            if (!in_array($key, $this->userMetaBlacklist)) {
                 $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
                 $customData->$key = $user_meta[0];
             }
@@ -343,10 +342,9 @@ class authenticate
             // setup to add existing meta data to customData
             $customData = $accountObj->customData;
             $user_meta_arr = get_user_meta($wpUser->ID);
-            $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname', 'session_tokens');
 
             foreach ($user_meta_arr as $key => $user_meta) {
-                if (!in_array($key, $user_meta_blacklist)) {
+                if (!in_array($key, $this->userMetaBlacklist)) {
                     $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
                     $customData->$key = $user_meta[0];
                 }
