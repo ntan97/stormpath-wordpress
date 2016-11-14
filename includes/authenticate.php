@@ -61,6 +61,7 @@ class authenticate
     {
         $this->spClient = $client;
         $this->spApplication = $application;
+        $this->userMetaBlacklist = array('user_email', 'first_name', 'last_name', 'nickname', 'session_tokens');
     }
 
     /**
@@ -218,11 +219,17 @@ class authenticate
 
             $customData = $account->customData;
 
-            // $sanitized_meta_value = sanitize_meta($_meta_value);
+            if (!in_array($meta_key, $this->userMetaBlacklist)) {
+                $customData->$meta_key = $_meta_value;
 
-            $customData->$meta_key = $_meta_value;
-
-            $customData->save();
+                $customData->save();
+            } elseif ($meta_key == 'first_name') {
+                $account->givenName = $_meta_value;
+                $account->save();
+            } elseif ($meta_key == 'last_name') {
+                $account->surname = $_meta_value;
+                $account->save();
+            }
         }
     }
 
@@ -273,27 +280,45 @@ class authenticate
      */
     public function user_registered($wpUserId)
     {
-        if (!isset($_REQUEST['_wpnonce_create-user']) || !isset($_POST['pass1'])) {
-            return;
+        if (!function_exists('is_woocommerce')) {
+            if (!isset($_REQUEST['_wpnonce_create-user']) || !isset($_POST['pass1'])) {
+                return;
+            }
+
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce_create-user'])), 'create-user')) {
+                wp_die('nonce not valid');
+            }
+        } else {
+            if (!isset($_POST['account_password']) || !isset($_POST['_wpnonce'])) {
+                return;
+            }
+
+            if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['_wpnonce'])), 'woocommerce-process_checkout')) {
+                wp_die('nonce not valid');
+            }
         }
-        if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce_create-user'])), 'create-user')) {
-            wp_die('nonce not valid');
-        }
+
+        $user_meta_arr = get_user_meta($wpUserId);
+
         $user = new WP_User($wpUserId);
-        $password = sanitize_text_field(wp_unslash($_POST['pass1']));
+
+        if (function_exists('is_woocommerce')) {
+            $password = sanitize_text_field(wp_unslash($_POST['account_password']));
+        } else {
+            $password = sanitize_text_field(wp_unslash($_POST['pass1']));
+        }
 
         $account = new \stdClass();
         $account->email = $user->user_email;
         $account->password = $password;
-        $account->givenName = $user->user_firstname;
-        $account->surname = $user->user_lastname;
+        $account->givenName = $user_meta_arr['first_name'][0];
+        $account->surname = $user_meta_arr['last_name'][0];
         $account->username = $user->user_login;
 
         $accountObj = $this->spClient->getDataStore()->instantiate(Account::class, $account);
 
         // setup to add existing meta data to customData
         $customData = $accountObj->customData;
-        $user_meta_arr = get_user_meta($wpUserId);
         $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname');
 
         foreach ($user_meta_arr as $key => $user_meta) {
@@ -332,8 +357,8 @@ class authenticate
 
             // setup to add existing meta data to customData
             $customData = $accountObj->customData;
-            $user_meta_arr = get_user_meta($wpUserId);
-            $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname');
+            $user_meta_arr = get_user_meta($wpUser->ID);
+            $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname', 'session_tokens');
 
             foreach ($user_meta_arr as $key => $user_meta) {
                 if (!in_array($key, $user_meta_blacklist)) {
@@ -380,6 +405,7 @@ class authenticate
     public function password_changed($user, $password)
     {
         $accounts = $this->spApplication->accounts->setSearch(['q' => $user->user_email]);
+
         if ($accounts->size > 0) {
             $account = $accounts->getIterator()->current();
 
@@ -388,6 +414,8 @@ class authenticate
 
             $id = $user->ID;
             wp_set_password(wp_hash_password(wp_generate_password(32)), $id);
+        } else {
+            $this->register_stormpath_user($user, $password);
         }
     }
 }

@@ -106,6 +106,11 @@ class stormpath
             add_action('after_password_reset', [$this->authenticate, 'password_changed'], 10, 2);
             add_filter('authenticate', [$this->authenticate, 'authenticate'], 10, 3);
             add_filter('login_errors', [$this, 'login_errors'], 10, 1);
+
+            // woocommerce conditionals
+            if (function_exists('is_woocommerce')) {
+                add_action('woocommerce_payment_complete_order_status', [$this->authenticate, 'user_registered'], 10, 1);
+            }
         } else {
             do_action('stormpath_admin_error', 'could_not_contact_stormpath');
         }
