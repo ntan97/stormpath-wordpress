@@ -61,6 +61,7 @@ class authenticate
     {
         $this->spClient = $client;
         $this->spApplication = $application;
+        $this->userMetaBlacklist = array('user_email', 'first_name', 'last_name', 'nickname', 'session_tokens');
     }
 
     /**
@@ -201,6 +202,78 @@ class authenticate
     }
 
     /**
+     * Update User Meta on Stormpath.
+     *
+     * @param int    $meta_id     id of the meta in the database
+     * @param int    $object_id   id of the object the meta is applied to
+     * @param string $meta_key    key or nicename of the meta
+     * @param mixed  $_meta_value value of the meta
+     */
+    public function updated_user_meta($meta_id, $object_id, $meta_key, $_meta_value)
+    {
+        $user = new WP_User($object_id);
+
+        $accounts = $this->spApplication->accounts->setSearch(['q' => $user->user_email]);
+        if ($accounts->size > 0) {
+            $account = $accounts->getIterator()->current();
+
+            $customData = $account->customData;
+
+            if (!in_array($meta_key, $this->userMetaBlacklist)) {
+                $customData->$meta_key = $_meta_value;
+
+                $customData->save();
+            } elseif ($meta_key == 'first_name') {
+                $account->givenName = $_meta_value;
+                $account->save();
+            } elseif ($meta_key == 'last_name') {
+                $account->surname = $_meta_value;
+                $account->save();
+            }
+        }
+    }
+
+    /**
+     * Sanitize meta data from strings into the appropriate data type.
+     *
+     * @param str $user_meta
+     *
+     * @return $user_meta in the appropriate data format
+     */
+    private function sanitize_user_meta($user_meta)
+    {
+        // convert to iterator_count if is int
+        if (is_numeric($user_meta)) {
+            $user_meta = intval($user_meta);
+
+            return $user_meta;
+        }
+
+        // convert to boolean
+        switch (strtolower($user_meta)) {
+            case 'true':
+                $user_meta = true;
+
+                return $user_meta;
+                break;
+            case 'false':
+                $user_meta = false;
+
+                return $user_meta;
+                break;
+
+            default:
+                # code...
+                break;
+        }
+
+        // unseriailize
+        $user_meta = maybe_unserialize($user_meta);
+
+        return $user_meta;
+    }
+
+    /**
      * Hook callback for when a user was registered.
      *
      * @param int $wpUserId The WordPress User Id.
@@ -210,24 +283,41 @@ class authenticate
         if (!isset($_REQUEST['_wpnonce_create-user']) || !isset($_POST['pass1'])) {
             return;
         }
+
         if (!wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce_create-user'])), 'create-user')) {
             wp_die('nonce not valid');
         }
+
+        $user_meta_arr = get_user_meta($wpUserId);
+
         $user = new WP_User($wpUserId);
         $password = sanitize_text_field(wp_unslash($_POST['pass1']));
 
         $account = new \stdClass();
         $account->email = $user->user_email;
         $account->password = $password;
-        $account->givenName = $user->user_firstname;
-        $account->surname = $user->user_lastname;
+        $account->givenName = $wpUser->user_firstname;
+        $account->surname = $wpUser->user_lastname;
         $account->username = $user->user_login;
 
         $accountObj = $this->spClient->getDataStore()->instantiate(Account::class, $account);
 
+        // setup to add existing meta data to customData
+        $customData = $accountObj->customData;
+        $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname');
+
+        foreach ($user_meta_arr as $key => $user_meta) {
+            if (!in_array($key, $user_meta_blacklist)) {
+                $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
+                $customData->$key = $user_meta[0];
+            }
+        }
+
         $this->spApplication->createAccount($accountObj);
 
-        wp_set_password(wp_hash_password(wp_generate_password(32)), $wpUserId);
+        wp_new_user_notification($wpUserId, null, '', true);
+
+        wp_set_password(wp_hash_password($password), $wpUserId);
     }
 
     /**
@@ -249,6 +339,18 @@ class authenticate
             $account->username = $wpUser->user_login;
 
             $accountObj = $this->spClient->getDataStore()->instantiate(Account::class, $account);
+
+            // setup to add existing meta data to customData
+            $customData = $accountObj->customData;
+            $user_meta_arr = get_user_meta($wpUser->ID);
+            $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname', 'session_tokens');
+
+            foreach ($user_meta_arr as $key => $user_meta) {
+                if (!in_array($key, $user_meta_blacklist)) {
+                    $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
+                    $customData->$key = $user_meta[0];
+                }
+            }
 
             return $this->spApplication->createAccount($accountObj);
         } catch (\Exception $e) {
@@ -288,6 +390,7 @@ class authenticate
     public function password_changed($user, $password)
     {
         $accounts = $this->spApplication->accounts->setSearch(['q' => $user->user_email]);
+
         if ($accounts->size > 0) {
             $account = $accounts->getIterator()->current();
 
@@ -296,6 +399,8 @@ class authenticate
 
             $id = $user->ID;
             wp_set_password(wp_hash_password(wp_generate_password(32)), $id);
+        } else {
+            $this->register_stormpath_user($user, $password);
         }
     }
 }
