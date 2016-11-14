@@ -296,8 +296,8 @@ class authenticate
         $account = new \stdClass();
         $account->email = $user->user_email;
         $account->password = $password;
-        $account->givenName = $wpUser->user_firstname;
-        $account->surname = $wpUser->user_lastname;
+        $account->givenName = $user->user_firstname;
+        $account->surname = $user->user_lastname;
         $account->username = $user->user_login;
 
         $accountObj = $this->spClient->getDataStore()->instantiate(Account::class, $account);
