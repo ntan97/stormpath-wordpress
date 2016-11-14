@@ -305,7 +305,9 @@ class authenticate
 
         $this->spApplication->createAccount($accountObj);
 
-        wp_set_password(wp_hash_password(wp_generate_password(32)), $wpUserId);
+        wp_new_user_notification($wpUserId, null, '', true);
+
+        wp_set_password(wp_hash_password($password), $wpUserId);
     }
 
     /**
@@ -327,6 +329,18 @@ class authenticate
             $account->username = $wpUser->user_login;
 
             $accountObj = $this->spClient->getDataStore()->instantiate(Account::class, $account);
+
+            // setup to add existing meta data to customData
+            $customData = $accountObj->customData;
+            $user_meta_arr = get_user_meta($wpUserId);
+            $user_meta_blacklist = array('user_email', 'first_name', 'last_name', 'nickname');
+
+            foreach ($user_meta_arr as $key => $user_meta) {
+                if (!in_array($key, $user_meta_blacklist)) {
+                    $user_meta[0] = $this->sanitize_user_meta($user_meta[0]);
+                    $customData->$key = $user_meta[0];
+                }
+            }
 
             return $this->spApplication->createAccount($accountObj);
         } catch (\Exception $e) {
