@@ -18,16 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @package Stormpath
+ * @package Stormpath\WordPress
  */
 
-namespace Stormpath;
+namespace Stormpath\WordPress;
 
 /**
  * Class Settings
  *
  * @category    Settings
- * @package     Stormpath
+ * @package     Stormpath\WordPress
  * @author      Stormpath <support@stormpath.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU General Public License
  * @link        https://stormpath.com/
@@ -35,7 +35,7 @@ namespace Stormpath;
 class Settings {
 
 	/**
-	 * Current instance of Stormpath\Stormpath
+	 * Current instance of Stormpath\WordPress\Stormpath
 	 *
 	 * @var Stormpath $stormpathInstance The current instance of the Stormpath object.
 	 */

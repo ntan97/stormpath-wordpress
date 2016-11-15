@@ -2,10 +2,10 @@
 /**
  * Stormpath WordPress Plugin Bootstrapper.
  *
- * @package Stormpath
+ * @package Stormpath\WordPress
  */
 
-namespace Stormpath;
+namespace Stormpath\WordPress;
 
 /**
  * Auto-loader for the Stormpath WordPress plugin.
