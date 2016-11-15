@@ -83,6 +83,21 @@ class stormpath
         }
     }
 
+    public function get_application()
+    {
+        $application = array();
+
+        $this->client = $this->create_client();
+        $application['client'] = $this->client;
+
+        if ($this->client) {
+            $this->application = $this->application();
+            $application['application'] = $this->application;
+        }
+
+        return $application;
+    }
+
     /**
      * Register Hooks in WordPress.
      */
