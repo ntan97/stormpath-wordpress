@@ -19,13 +19,13 @@
  * along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace Stormpath\WordPress;
+namespace Stormpath;
 
 use Stormpath\Client;
 use Stormpath\Resource\Application;
-use Stormpath\WordPress\Notices\Error;
-use Stormpath\WordPress\Notices\Success;
-use Stormpath\WordPress\Notices\Warning;
+use Stormpath\Notices\Error;
+use Stormpath\Notices\Success;
+use Stormpath\Notices\Warning;
 
 /**
  * Class Stormpath.

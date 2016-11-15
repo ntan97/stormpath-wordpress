@@ -2,10 +2,10 @@
 /**
  * Base test case for Schemify.
  *
- * @package Stormpath\WordPress
+ * @package Stormpath
  */
 
-namespace Stormpath\WordPress;
+namespace Stormpath;
 
 use WP_Mock;
 

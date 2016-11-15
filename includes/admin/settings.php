@@ -2,7 +2,7 @@
 /**
  * The Stormpath Settings Page
  *
- * @package Stormpath\WordPress
+ * @package Stormpath
  * @author Stormpath <support@stormpath.com>
  */
 

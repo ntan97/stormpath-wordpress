@@ -2,16 +2,16 @@
 /**
  * Stormpath WordPress Client Resource
  *
- * @package     Stormpath\WordPress
+ * @package     Stormpath
  */
 
-namespace Stormpath\WordPress\Resources;
+namespace Stormpath\Resources;
 
 /**
  * The Client Resource for Stormpath
  *
  * @category    Class
- * @package     Stormpath\WordPress
+ * @package     Stormpath
  * @author      Stormpath <support@stormpath.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU General Public License
  * @link        https://stormpath.com

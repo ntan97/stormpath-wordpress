@@ -2,7 +2,7 @@
 /**
  * Bootstrap the test suite.
  *
- * @package Stormpath\WordPress
+ * @package Stormpath
  */
 
 if ( ! defined( 'PROJECT' ) ) {

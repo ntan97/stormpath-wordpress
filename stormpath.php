@@ -10,9 +10,9 @@
  * Domain Path: /languages.
  */
 
-namespace Stormpath\WordPress;
+namespace Stormpath;
 
-define('STORMPATH_INTEGRATION',    'stormpath-wordpress');
+define('STORMPATH_INTEGRATION',    'stormpath');
 define('STORMPATH_VERSION',        '0.1.5');
 
 require_once dirname(__FILE__).'/vendor/autoload.php';
