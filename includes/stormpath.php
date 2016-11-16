@@ -65,6 +65,39 @@ class stormpath
      */
     public function __construct()
     {
+<<<<<<< HEAD
+        if (is_admin()) {
+            $this->settings = new Settings($this);
+            $this->add_hooks();
+        }
+
+        if (!is_user_logged_in() && !is_admin()) {
+            $this->client = $this->create_client();
+
+            if ($this->client) {
+                $this->application = $this->application();
+            }
+
+            if ($this->application) {
+                $this->replace_auth();
+            }
+        }
+    }
+
+    public function get_application()
+    {
+        $application = array();
+
+        $this->client = $this->create_client();
+        $application['client'] = $this->client;
+
+        if ($this->client) {
+            $this->application = $this->application();
+            $application['application'] = $this->application;
+        }
+
+        return $application;
+=======
         $this->settings = new Settings($this);
 
         $this->add_hooks();
@@ -78,6 +111,7 @@ class stormpath
         if ($this->application) {
             $this->replace_auth();
         }
+>>>>>>> develop
     }
 
     /**
@@ -102,6 +136,11 @@ class stormpath
 
             add_action('user_register', [$this->authenticate, 'user_registered'], 10, 1);
             add_action('profile_update', [$this->authenticate, 'profile_update'], 10, 2);
+<<<<<<< HEAD
+            add_action('after_password_reset', [$this->authenticate, 'password_changed'], 10, 2);
+            add_filter('authenticate', [$this->authenticate, 'authenticate'], 10, 3);
+            add_filter('login_errors', [$this, 'login_errors'], 10, 1);
+=======
             add_action('updated_user_meta', [$this->authenticate, 'updated_user_meta'], 10, 4);
             add_action('after_password_reset', [$this->authenticate, 'password_changed'], 10, 2);
             add_filter('authenticate', [$this->authenticate, 'authenticate'], 10, 3);
@@ -111,6 +150,7 @@ class stormpath
             if (function_exists('is_woocommerce')) {
                 add_action('woocommerce_payment_complete_order_status', [$this->authenticate, 'user_registered'], 10, 1);
             }
+>>>>>>> develop
         } else {
             do_action('stormpath_admin_error', 'could_not_contact_stormpath');
         }
@@ -170,9 +210,13 @@ class stormpath
 
         $builder = new \Stormpath\ClientBuilder();
         $client = $builder->setApiKeyProperties("apiKey.id={$id}\napiKey.secret={$secret}")
+<<<<<<< HEAD
+            ->build();
+=======
             ->setIntegration(STORMPATH_INTEGRATION.'/'.STORMPATH_VERSION.' WordPress/'.get_bloginfo('version'))
             ->build();
         $client->getInstance();
+>>>>>>> develop
 
         return $client;
     }

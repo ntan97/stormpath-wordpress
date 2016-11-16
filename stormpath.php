@@ -13,7 +13,11 @@
 namespace Stormpath\WordPress;
 
 define('STORMPATH_INTEGRATION',    'stormpath-wordpress');
+<<<<<<< HEAD
+define('STORMPATH_VERSION',        '0.1.5');
+=======
 define('STORMPATH_VERSION',        '0.1.6');
+>>>>>>> develop
 
 require_once dirname(__FILE__).'/vendor/autoload.php';
 require_once dirname(__FILE__).'/includes/bootstrap.php';
